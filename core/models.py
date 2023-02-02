@@ -1,4 +1,9 @@
+import qrcode
+from io import BytesIO
+from PIL import Image, ImageDraw
+
 from django.db import models
+from django.core.files import File
 from django.contrib.auth.models import User
 
 
@@ -77,3 +82,21 @@ class Track(models.Model):
 
     def __str__(self):
         return '%d: %s' % (self.order, self.title)
+
+class QR(models.Model):
+    name = models.CharField(max_length=250)
+    qr_code = models.ImageField(upload_to="QR_codes", blank=True)
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        qrcode_img = qrcode.make(self.name)
+        canvas = Image.new('RGB', (290, 290), 'white')
+        canvas.paste(qrcode_img)
+        fname = f'qr_code-{self.name}.png'
+        buffer = BytesIO()
+        canvas.save(buffer,'PNG')
+        self.qr_code.save(fname, File(buffer), save=False)
+        canvas.close()
+        super().save(*args, **kwargs)
