@@ -1,4 +1,4 @@
 env
 db.sqlite3
-__pychac__
 .vscode
+__pycache__
